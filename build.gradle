@@ -1,0 +1,81 @@
+plugins {
+    id 'org.springframework.boot' version '2.2.5.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.9.RELEASE'
+    id 'java'
+    id 'jacoco'
+}
+
+group = 'com.alok'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly group: 'io.springfox', name: 'springfox-swagger2', version: '2.9.2'
+    compileOnly group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.9.2'
+    testImplementation('org.springframework.boot:spring-boot-starter-test', ) {
+        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+    }
+   
+    
+    implementation('org.springframework.boot:spring-boot-starter',
+    'org.springframework.boot:spring-boot-starter-web',
+    'org.springframework.boot:spring-boot-starter-thymeleaf',
+    'org.eclipse.jgit:org.eclipse.jgit:5.4.2.201908231537-r'
+    )
+    // group: 'org.testng', name: 'testng', version: '7.1.0'
+    testCompileOnly(
+            ['org.testng:testng:7.1.0'],
+            ['org.mockito:mockito-all:1.9.5']
+    )
+    testRuntimeOnly(
+            ['org.testng:testng:7.1.0'],
+            ['org.mockito:mockito-all:1.9.5']
+    )
+
+}
+
+test {
+    useJUnitPlatform()
+    useTestNG() { //Tells Gradle to use TestNG
+        useDefaultListeners = true // Tells TestNG to execute its default reporting structure
+        suites 'src/test/suite.xml' //location of our suite.xml
+        //includeGroups 'smoke'
+    }
+}
+
+task smokeTests(type: Test) { // we define a task with name ‘smokeTests’
+    useTestNG() {
+        useDefaultListeners = true
+        suites 'src/test/suite.xml'
+        includeGroups 'smoke' // We define the group name by using ‘includeGroups’ parameter.
+    }
+}
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                counter = 'METHOD'
+                value = 'COVEREDRATIO'
+                minimum = 1.0
+            }
+        }
+    }
+}
+
+jacocoTestReport {
+    reports {
+        xml {
+            enabled true
+            destination  file("${buildDir}/jacoco.xml")	}
+        csv {
+            enabled true
+            destination  file("${buildDir}/jacoco.csv")
+        }
+        html.destination file("${buildDir}/jacocoHtml")
+    }
+}

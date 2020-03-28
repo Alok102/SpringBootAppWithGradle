@@ -1,7 +1,9 @@
 package com.alok.app.controller;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.LinkedList;
 import java.util.List;
 import org.eclipse.jgit.api.DiffCommand;
@@ -29,10 +31,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class GitDiffCommand {
 
-	//@Value("${git.complete.path}")
-	private String gitRepoPath="C:\\Users\\i529560\\eclipse-workspace1\\SpringBootWithGradle";
+	// @Value("${git.complete.path}")
+	private String gitRepoPath = "C:\\Users\\i529560\\eclipse-workspace1\\SpringBootWithGradle";
 
-	//@Value("${git.diff.only.java.files}")
+	// @Value("${git.diff.only.java.files}")
 	private boolean includeOnlyJavaFilesDiff;
 
 	@GetMapping("/runReleventTests")
@@ -83,6 +85,7 @@ public class GitDiffCommand {
 
 			DiffCommand diffCommand = git.diff().setOldTree(oldTreeParser).setNewTree(newTreeParser)
 					.setShowNameAndStatusOnly(true);
+			System.out.println("command ::" + diffCommand.toString());
 
 			if (includeOnlyJavaFilesDiff)
 				diffCommand.setPathFilter(PathSuffixFilter.create(".java"));
@@ -100,6 +103,34 @@ public class GitDiffCommand {
 			}
 		}
 		System.out.println(stringBuilder.toString());
+		return printDiff(repository, commits.get(0));
+		//return stringBuilder.toString();
+	}
+
+	public String printDiff(Repository repository, String commitId) throws IOException, GitAPIException {
+		StringBuilder stringBuilder = new StringBuilder();
+		stringBuilder.append("<html>\n");
+		stringBuilder.append("<body>\n");
+		ProcessBuilder processBuilder = new ProcessBuilder();
+		processBuilder.command("git", "diff", commitId + "~", commitId);
+		try {
+			Process process = processBuilder.start();
+			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+			String line;
+			while ((line = reader.readLine()) != null) {
+				stringBuilder.append(line).append("<br>\n");
+			}
+			if(process.waitFor()!=0) {
+				throw new RuntimeException("failure of command execution");
+			}
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		stringBuilder.append("</html>\n");
+		stringBuilder.append("</body>\n");
 		return stringBuilder.toString();
 	}
 

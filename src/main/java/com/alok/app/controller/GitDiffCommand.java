@@ -29,10 +29,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class GitDiffCommand {
 
-	@Value("${git.complete.path}")
-	private String gitRepoPath;
+	//@Value("${git.complete.path}")
+	private String gitRepoPath="C:\\Users\\i529560\\eclipse-workspace1\\SpringBootWithGradle";
 
-	@Value("${git.diff.only.java.files}")
+	//@Value("${git.diff.only.java.files}")
 	private boolean includeOnlyJavaFilesDiff;
 
 	@GetMapping("/runReleventTests")

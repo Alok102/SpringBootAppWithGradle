@@ -16,7 +16,9 @@ public class Test {
 	public void div() {
 		int a = 21;
 		int b = 3;
+		//dev
 		System.out.println("Div" + (a / b));
+		//mul
 		System.out.println("Mul" + (a * b));
 	}
 }

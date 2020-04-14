@@ -21,7 +21,6 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.treewalk.AbstractTreeIterator;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.filter.PathSuffixFilter;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,20 +36,22 @@ public class GitDiffCommand {
 	// @Value("${git.diff.only.java.files}")
 	private boolean includeOnlyJavaFilesDiff;
 
+	private Git git;
+
+	private Repository repo;
+
 	@GetMapping("/runReleventTests")
 	ResponseEntity<String> generateTests(@RequestParam(name = "commitId", required = false) String commitId) {
 		String response = "STARTED.";
 		try {
-			Repository repo = getRepository();
+			repo = getRepository();
 			System.out.println("Git Branch : " + repo.getBranch());
 
-			Git git = new Git(repo);
-			int count = 0;
+			git = new Git(repo);
 			List<String> commitsUnderTest = new LinkedList<>();
 			for (RevCommit commit : git.log().add(repo.resolve(repo.getBranch())).setMaxCount(2).call()) {
 				System.out.println("Commit : " + commit.getName());
 				commitsUnderTest.add(commit.getName());
-				count++;
 			}
 
 			response = printDiff(repo, commitsUnderTest);
@@ -107,7 +108,7 @@ public class GitDiffCommand {
 		//return stringBuilder.toString();
 	}
 
-	public String printDiff(Repository repository, String commitId) throws IOException, GitAPIException {
+	public String printDiff(Repository repository, String commitId) {
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("<html>\n");
 		stringBuilder.append("<body>\n");

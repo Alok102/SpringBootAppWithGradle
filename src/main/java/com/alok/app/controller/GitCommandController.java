@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class GitDiffCommand {
+public class GitCommandController {
 
 	// @Value("${git.complete.path}")
 	private String gitRepoPath = "C:\\Users\\i529560\\eclipse-workspace1\\SpringBootWithGradle";
@@ -138,7 +138,6 @@ public class GitDiffCommand {
 	private static AbstractTreeIterator prepareTreeParser(Repository repository, String objectId) throws IOException {
 		// from the commit we can build the tree which allows us to construct the
 		// TreeParser
-		// noinspection Duplicates
 		try (RevWalk walk = new RevWalk(repository)) {
 			RevCommit commit = walk.parseCommit(ObjectId.fromString(objectId));
 			RevTree tree = walk.parseTree(commit.getTree().getId());

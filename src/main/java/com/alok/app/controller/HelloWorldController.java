@@ -7,10 +7,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
   
 @RestController
-public class DemoController {
+public class HelloWorldController {
   
-    @RequestMapping("/")
+    @RequestMapping("/hello")
     public String welcome(Map<String, Object> model) {
-        return "welcome";
+        return "welcome !... Spring boot learning";
     }
 }

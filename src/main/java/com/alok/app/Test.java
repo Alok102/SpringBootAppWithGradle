@@ -6,6 +6,8 @@ public class Test {
 		//------n
 
 	}
+	//test comments 
+	//
 	public void print2() {
 		//---d
 		//----d

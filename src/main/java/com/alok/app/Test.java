@@ -1,20 +1,21 @@
 package com.alok.app;
 
 public class Test {
-	public void print1() {
-		//------n
-		//------n
-		//line 7
+	public void sum() {
+		int a = 2;
+		int b = 3;
+		System.out.println("summ" + (a + b));
 	}
-	//test comments 
-	//
-	//line 11
-	public void print2() {
-		//----d
-		//----d
+
+	public void sub() {
+		int a = 2;
+		int b = 3;
+		System.out.println("Subs" + (a - b));
 	}
-	public void print3() {
-		//------
-		//-----------
+
+	public void div() {
+		int a = 21;
+		int b = 3;
+		System.out.println("Div" + (a / b));
 	}
 }

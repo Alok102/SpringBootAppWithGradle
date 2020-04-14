@@ -2,7 +2,7 @@ package com.alok.app;
 
 public class Test {
 	public void sum() {
-		int a = 2;
+		int a = 20;
 		int b = 3;
 		System.out.println("summ" + (a + b));
 	}
@@ -17,5 +17,6 @@ public class Test {
 		int a = 21;
 		int b = 3;
 		System.out.println("Div" + (a / b));
+		System.out.println("Mul" + (a * b));
 	}
 }

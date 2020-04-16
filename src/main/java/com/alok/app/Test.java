@@ -1,5 +1,8 @@
 package com.alok.app;
 
+import java.util.List;
+import java.util.stream.IntStream;
+
 public class Test {
 	public void sum() {
 		int a = 20;
@@ -13,12 +16,21 @@ public class Test {
 		System.out.println("Subs" + (a - b));
 	}
 
+	public void printRandomNumber() {
+		IntStream stream = IntStream.generate(() -> {
+			return (int) (Math.random() * 10000);
+		});
+
+		stream.limit(10).forEach(System.out::println);
+
+	}
+
 	public void div() {
 		int a = 21;
 		int b = 3;
-		//dev
+		// dev
 		System.out.println("Div" + (a / b));
-		//mul
+		// mul
 		System.out.println("Mul" + (a * b));
 	}
 }

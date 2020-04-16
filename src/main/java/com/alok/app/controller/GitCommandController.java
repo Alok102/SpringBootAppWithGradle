@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import org.eclipse.jgit.api.DiffCommand;
@@ -26,6 +28,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.alok.parser.JavaClassPaser;
 
 @RestController
 public class GitCommandController {
@@ -92,8 +96,15 @@ public class GitCommandController {
 				diffCommand.setPathFilter(PathSuffixFilter.create(".java"));
 
 			List<DiffEntry> diff = diffCommand.call();
+			List<String> classFileList = new ArrayList<>();
 			for (DiffEntry entry : diff) {
 
+				System.out.println("-------------------------------------------");
+				System.out.println("Attribute::"+entry.getNewPath());
+				JavaClassPaser.parseJavaFile(entry.getNewPath());
+				classFileList.add(entry.getNewPath());
+				//System.out.println("Attribute::"+entry.());
+				System.out.println("-------------------------------------------");
 				stringBuilder.append("Change Type: " + entry.getChangeType()
 						+ (!(entry.getChangeType().equals(DiffEntry.ChangeType.ADD))
 								? ", existing " + entry.getOldPath()
@@ -104,6 +115,7 @@ public class GitCommandController {
 			}
 		}
 		System.out.println(stringBuilder.toString());
+		printDiff1(repository, commits.get(0));
 		return printDiff(repository, commits.get(0));
 		//return stringBuilder.toString();
 	}
@@ -159,6 +171,51 @@ public class GitCommandController {
 		repositoryBuilder.setGitDir(new File(gitRepoPath + "/.git"));
 		Repository repository = repositoryBuilder.build();
 		return repository;
+	}
+	
+	
+	public String printDiff1(Repository repository, String commitId) {
+		StringBuilder stringBuilder = new StringBuilder();
+		ProcessBuilder processBuilder = new ProcessBuilder();
+		processBuilder.command("git", "diff", commitId + "~", commitId);
+		List<Integer> list = new ArrayList<>();
+		try {
+			Process process = processBuilder.start();
+			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+			String line;
+			int count =0;
+			while ((line = reader.readLine()) != null) {
+				int startingPoint =0;
+				int endPoint = 0;
+				count = count+1;
+				if(line.startsWith("@@")) {
+					count=0;
+					System.out.println(line);
+					String[] str = line.split(" ");
+					System.out.println(Arrays.toString(str));
+					System.out.println(str[2]);
+					String[] str1 = str[2].split(",");
+					System.out.println(Arrays.toString(str1));
+					startingPoint = Integer.valueOf(str1[0]); 
+					endPoint = Integer.valueOf(str1[1]); 
+				}
+				if(line.startsWith("+")||line.startsWith("-")) {
+					System.out.println("line::"+line);
+					list.add(count+startingPoint);
+				}
+				
+			}
+			if(process.waitFor()!=0) {
+				throw new RuntimeException("failure of command execution");
+			}
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		System.out.println("List::"+list);
+		return stringBuilder.toString();
 	}
 
 }

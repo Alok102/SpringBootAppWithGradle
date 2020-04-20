@@ -2,17 +2,22 @@ package com.alok.app.controller;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+
 import org.eclipse.jgit.api.DiffCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.diff.DiffFormatter;
+import org.eclipse.jgit.diff.Edit;
+import org.eclipse.jgit.diff.RawTextComparator;
+import org.eclipse.jgit.errors.RevisionSyntaxException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Repository;
@@ -22,7 +27,9 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.treewalk.AbstractTreeIterator;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
+import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.eclipse.jgit.treewalk.filter.PathSuffixFilter;
+import org.eclipse.jgit.util.io.DisabledOutputStream;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -85,6 +92,32 @@ public class GitCommandController {
 		AbstractTreeIterator oldTreeParser = prepareTreeParser(repository, commits.get(1));
 		AbstractTreeIterator newTreeParser = prepareTreeParser(repository, commits.get(0));
 
+//		RevWalk rw = new RevWalk(repo);
+//		RevCommit commit = rw.parseCommit(repo.resolve(commits.get(1)));// Any ref will work here (HEAD, a sha1, tag,
+//																		// branch)
+//		System.out.println("commit::" + commit);
+//		RevCommit parent = rw.parseCommit(commit.getParent(0).getId());
+//		System.out.println("parent::" + parent);
+//		DiffFormatter df = new DiffFormatter(DisabledOutputStream.INSTANCE);
+//		int filesChanged = 0;
+//		int linesAdded = 0;
+//		int linesDeleted = 0;
+//
+//		df.setRepository(repo);
+//		df.setDiffComparator(RawTextComparator.DEFAULT);
+//		df.setDetectRenames(true);
+//
+//		List<DiffEntry> diffs;
+//		diffs = df.scan(parent.getTree(), commit.getTree());
+//		filesChanged = diffs.size();
+//		for (DiffEntry diff : diffs) {
+//			System.out.println("header::" + df.toFileHeader(diff));
+//			System.out.println("editList" + df.toFileHeader(diff).toEditList());
+//			for (Edit edit : df.toFileHeader(diff).toEditList()) {
+//				linesDeleted += edit.getEndA() - edit.getBeginA();
+//				linesAdded += edit.getEndB() - edit.getBeginB();
+//			}
+//		}
 		// then the porcelain diff-command returns a list of diff entries
 		try (Git git = new Git(repository)) {
 
@@ -97,6 +130,12 @@ public class GitCommandController {
 
 			List<DiffEntry> diff = diffCommand.call();
 			List<String> classFileList = new ArrayList<>();
+			RevWalk rw = new RevWalk(repo);
+			RevCommit commit = rw.parseCommit(repo.resolve(commits.get(1)));
+			List<RevCommit> revCommit = new ArrayList<RevCommit>();
+			RevCommit parent = rw.parseCommit(commit.getParent(0).getId());
+			revCommit.add(commit);
+			revCommit.add(parent);
 			for (DiffEntry entry : diff) {
 
 				System.out.println("-------------------------------------------");
@@ -111,13 +150,16 @@ public class GitCommandController {
 								: "")
 						+ ((!entry.getOldPath().equals(entry.getNewPath())) ? ", to: " + entry.getNewPath() : ""));
 				stringBuilder.append("\r\n<br>");
-
+				
+				
+				linesChangeInFile(git, commits,entry.getNewPath(),repository.getDirectory().getParent());
 			}
 		}
 		System.out.println(stringBuilder.toString());
-		printDiff1(repository, commits.get(0));
+		printDiff(repository, commits.get(0));
 		return printDiff(repository, commits.get(0));
-		//return stringBuilder.toString();
+		// return stringBuilder.toString();
+
 	}
 
 	public String printDiff(Repository repository, String commitId) {
@@ -133,7 +175,7 @@ public class GitCommandController {
 			while ((line = reader.readLine()) != null) {
 				stringBuilder.append(line).append("<br>\n");
 			}
-			if(process.waitFor()!=0) {
+			if (process.waitFor() != 0) {
 				throw new RuntimeException("failure of command execution");
 			}
 
@@ -172,50 +214,119 @@ public class GitCommandController {
 		Repository repository = repositoryBuilder.build();
 		return repository;
 	}
-	
-	
-	public String printDiff1(Repository repository, String commitId) {
-		StringBuilder stringBuilder = new StringBuilder();
-		ProcessBuilder processBuilder = new ProcessBuilder();
-		processBuilder.command("git", "diff", commitId + "~", commitId);
-		List<Integer> list = new ArrayList<>();
+
+//	public String printDiff1(Repository repository, String commitId) {
+//		StringBuilder stringBuilder = new StringBuilder();
+//		ProcessBuilder processBuilder = new ProcessBuilder();
+//		processBuilder.command("git", "diff", commitId + "~", commitId);
+//		List<Integer> list = new ArrayList<>();
+//		try {
+//			Process process = processBuilder.start();
+//			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+//			String line;
+//			int count =0;
+//			while ((line = reader.readLine()) != null) {
+//				int startingPoint =0;
+//				int endPoint = 0;
+//				count = count+1;
+//				if(line.startsWith("@@")) {
+//					count=0;
+//					System.out.println(line);
+//					String[] str = line.split(" ");
+//					System.out.println(Arrays.toString(str));
+//					System.out.println(str[2]);
+//					String[] str1 = str[2].split(",");
+//					System.out.println(Arrays.toString(str1));
+//					startingPoint = Integer.valueOf(str1[0]); 
+//					endPoint = Integer.valueOf(str1[1]); 
+//				}
+//				if(line.startsWith("+")||line.startsWith("-")) {
+//					System.out.println("line::"+line);
+//					list.add(count+startingPoint);
+//				}
+//				
+//			}
+//			if(process.waitFor()!=0) {
+//				throw new RuntimeException("failure of command execution");
+//			}
+//
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		} catch (InterruptedException e) {
+//			e.printStackTrace();
+//		}
+//		System.out.println("List::"+list);
+//		return stringBuilder.toString();
+//	}
+
+	public void linesChangeInFile(Git git,List<String> commits, String fileName, String pathRepository) {
 		try {
-			Process process = processBuilder.start();
-			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-			String line;
-			int count =0;
-			while ((line = reader.readLine()) != null) {
-				int startingPoint =0;
-				int endPoint = 0;
-				count = count+1;
-				if(line.startsWith("@@")) {
-					count=0;
-					System.out.println(line);
-					String[] str = line.split(" ");
-					System.out.println(Arrays.toString(str));
-					System.out.println(str[2]);
-					String[] str1 = str[2].split(",");
-					System.out.println(Arrays.toString(str1));
-					startingPoint = Integer.valueOf(str1[0]); 
-					endPoint = Integer.valueOf(str1[1]); 
+			System.out.println("fileName ::"+fileName);
+			System.out.println("pathRepository::"+pathRepository);
+
+			List<String> linesChange = new ArrayList<>();
+
+			for (int i = 0; i < commits.size() - 1; i++) {
+					linesChange.add(diff(git,commits.get(1), commits.get(0), fileName));
 				}
-				if(line.startsWith("+")||line.startsWith("-")) {
-					System.out.println("line::"+line);
-					list.add(count+startingPoint);
+
+				try (final FileInputStream input = new FileInputStream(pathRepository + "\\" + fileName)) {
+					BufferedReader br = new BufferedReader(new InputStreamReader(input));
+					System.out.println("added/chaned" + br.readLine());
 				}
-				
-			}
-			if(process.waitFor()!=0) {
-				throw new RuntimeException("failure of command execution");
+			
+
+			Integer sumLinesAdd = 0;
+			Integer sumLinesDel = 0;
+			for (String lineChange : linesChange) {
+				String[] lChange = lineChange.split(";");
+				sumLinesAdd += Integer.parseInt(lChange[0]);
+				sumLinesDel += Integer.parseInt(lChange[1]);
 			}
 
+			System.out.println("Lines Add total:" + sumLinesAdd);
+			System.out.println("Lines Del total:" + sumLinesDel);
+			System.out.println("Total lines change:" + (sumLinesAdd + sumLinesDel));
+
+		} catch (RevisionSyntaxException e) {
+			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
 		}
-		System.out.println("List::"+list);
-		return stringBuilder.toString();
+	}
+
+	private String diff(Git git, String commitIDOld, String commitIDNew, String fileName) {
+		int linesAdded = 0;
+		int linesDeleted = 0;
+		DiffFormatter df = null;
+		try {
+			AbstractTreeIterator oldTreeParser = prepareTreeParser(getRepository(), commitIDOld);
+			AbstractTreeIterator newTreeParser = prepareTreeParser(getRepository(), commitIDNew);
+
+			List<DiffEntry> diffs = git.diff().setOldTree(oldTreeParser).setNewTree(newTreeParser)
+					.setPathFilter(PathFilter.create(fileName)).call();
+
+			df = new DiffFormatter(DisabledOutputStream.INSTANCE);
+			df.setRepository(getRepository());
+			df.setDiffComparator(RawTextComparator.DEFAULT);
+			df.setDetectRenames(true);
+
+			for (DiffEntry entry : diffs) {
+				System.out.println("header::"+ df.toFileHeader(entry));
+				System.out.println("editList::"+df.toFileHeader(entry).toEditList());
+				for (Edit edit : df.toFileHeader(entry).toEditList()) {
+					System.out.println("edit.getEndA()::"+edit.getEndA()+" edit.getBeginA()::"+edit.getBeginA());
+					linesDeleted += edit.getEndA() - edit.getBeginA();
+					System.out.println("edit.getEndB()::"+ edit.getEndB()+" edit.getBeginB()::"+edit.getBeginB());
+					linesAdded += edit.getEndB() - edit.getBeginB();
+				}
+			}
+		} catch (IOException | GitAPIException e) {
+			System.err.println("Error:" + e.getMessage());
+		}
+
+		return linesAdded + ";" + linesDeleted;
+
 	}
 
 }

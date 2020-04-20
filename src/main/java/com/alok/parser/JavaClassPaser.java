@@ -21,7 +21,6 @@ public class JavaClassPaser {
 		}
 		try {
 			CompilationUnit cu  = JavaParser.parse(file);
-			System.out.println("cu::"+cu);
 			printMethodsAndTheirVariables(cu);
 			
 		} catch (ParseException | IOException e) {

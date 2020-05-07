@@ -37,12 +37,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.alok.parser.JavaClassPaser;
+import com.alok.parser.MethodDetails;
 
 @RestController
 public class GitCommandController {
 
 	// @Value("${git.complete.path}")
-	private String gitRepoPath = "C:\\Users\\i529560\\eclipse-workspace1\\SpringBootWithGradle";
+	private String gitRepoPath = "C:/Users/i529560/eclipse-workspace1/SpringBootWithGradle/";
 
 	// @Value("${git.diff.only.java.files}")
 	private boolean includeOnlyJavaFilesDiff;
@@ -113,7 +114,9 @@ public class GitCommandController {
 
 				System.out.println("-------------------------------------------");
 				System.out.println("Attribute::"+entry.getNewPath());
-				JavaClassPaser.parseJavaFile(gitRepoPath+entry.getNewPath());
+				List<MethodDetails> methodList = JavaClassPaser.printMethodsAndStartAndEndLine
+				(JavaClassPaser.parseJavaFile(gitRepoPath+entry.getNewPath()));
+				System.out.println("methodList::"+methodList);
 				classFileList.add(entry.getNewPath());
 				//System.out.println("Attribute::"+entry.());
 				System.out.println("-------------------------------------------");
@@ -125,7 +128,7 @@ public class GitCommandController {
 				stringBuilder.append("\r\n<br>");
 				
 				
-				//linesChangeInFile(git, commits,entry.getNewPath(),repository.getDirectory().getParent());
+				linesChangeInFile(git, commits,entry.getNewPath(),repository.getDirectory().getParent());
 			}
 		}
 		System.out.println(stringBuilder.toString());

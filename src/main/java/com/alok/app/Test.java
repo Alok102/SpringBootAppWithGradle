@@ -21,7 +21,6 @@ public class Test {
 		System.out.println("Subs" + (a - b));
 		System.out.println();
 		System.out.println();
-		System.out.println();
 		
 	}
 
@@ -36,7 +35,6 @@ public class Test {
 	}
 
 	public void div(int a , int b) {
-		System.out.println();
 		System.out.println("Div" + (a / b));
 	}
 }

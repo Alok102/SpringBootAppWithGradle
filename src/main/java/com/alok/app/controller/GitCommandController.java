@@ -230,7 +230,6 @@ public class GitCommandController {
 			for (DiffEntry entry : diffs) {
 				Set<MethodDetails> changeMethodList = new LinkedHashSet<MethodDetails>();
 				System.out.println("header::" + df.toFileHeader(entry));
-				System.out.println("editList::" + df.toFileHeader(entry).toEditList());
 				List<Edit> editList = df.toFileHeader(entry).toEditList();
 				System.out.println("editList::" + editList);
 				for (Edit edit : editList) {
@@ -248,7 +247,6 @@ public class GitCommandController {
 
 	public static Set<MethodDetails> getChangeMethodList(Edit edit, List<MethodDetails> methodList) {
 		Set<MethodDetails> methods = new LinkedHashSet<MethodDetails>();
-		System.out.println("edit::" + edit.toString());
 		for (MethodDetails method : methodList) {
 			if (method.getStartLine() <= edit.getBeginB() && edit.getBeginB() <= method.getEndLine()) {
 				methods.add(method);

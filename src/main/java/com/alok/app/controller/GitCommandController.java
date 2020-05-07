@@ -42,7 +42,7 @@ import com.alok.parser.JavaClassPaser;
 public class GitCommandController {
 
 	// @Value("${git.complete.path}")
-	private String gitRepoPath = "C:Users\\i529560\\eclipse-workspace1\\SpringBootWithGradle";
+	private String gitRepoPath = "C:\\Users\\i529560\\eclipse-workspace1\\SpringBootWithGradle";
 
 	// @Value("${git.diff.only.java.files}")
 	private boolean includeOnlyJavaFilesDiff;

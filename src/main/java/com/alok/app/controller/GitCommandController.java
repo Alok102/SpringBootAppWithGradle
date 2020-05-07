@@ -42,7 +42,7 @@ import com.alok.parser.JavaClassPaser;
 public class GitCommandController {
 
 	// @Value("${git.complete.path}")
-	private String gitRepoPath = "C:\\Users\\i529560\\eclipse-workspace1\\SpringBootWithGradle";
+	private String gitRepoPath = "C:Users\\i529560\\eclipse-workspace1\\SpringBootWithGradle";
 
 	// @Value("${git.diff.only.java.files}")
 	private boolean includeOnlyJavaFilesDiff;
@@ -51,7 +51,7 @@ public class GitCommandController {
 
 	private Repository repo;
 
-	@GetMapping("/runReleventTests")
+	@GetMapping("/Tests")
 	ResponseEntity<String> generateTests(@RequestParam(name = "commitId", required = false) String commitId) {
 		String response = "STARTED.";
 		try {
@@ -91,33 +91,6 @@ public class GitCommandController {
 
 		AbstractTreeIterator oldTreeParser = prepareTreeParser(repository, commits.get(1));
 		AbstractTreeIterator newTreeParser = prepareTreeParser(repository, commits.get(0));
-
-//		RevWalk rw = new RevWalk(repo);
-//		RevCommit commit = rw.parseCommit(repo.resolve(commits.get(1)));// Any ref will work here (HEAD, a sha1, tag,
-//																		// branch)
-//		System.out.println("commit::" + commit);
-//		RevCommit parent = rw.parseCommit(commit.getParent(0).getId());
-//		System.out.println("parent::" + parent);
-//		DiffFormatter df = new DiffFormatter(DisabledOutputStream.INSTANCE);
-//		int filesChanged = 0;
-//		int linesAdded = 0;
-//		int linesDeleted = 0;
-//
-//		df.setRepository(repo);
-//		df.setDiffComparator(RawTextComparator.DEFAULT);
-//		df.setDetectRenames(true);
-//
-//		List<DiffEntry> diffs;
-//		diffs = df.scan(parent.getTree(), commit.getTree());
-//		filesChanged = diffs.size();
-//		for (DiffEntry diff : diffs) {
-//			System.out.println("header::" + df.toFileHeader(diff));
-//			System.out.println("editList" + df.toFileHeader(diff).toEditList());
-//			for (Edit edit : df.toFileHeader(diff).toEditList()) {
-//				linesDeleted += edit.getEndA() - edit.getBeginA();
-//				linesAdded += edit.getEndB() - edit.getBeginB();
-//			}
-//		}
 		// then the porcelain diff-command returns a list of diff entries
 		try (Git git = new Git(repository)) {
 
@@ -140,7 +113,7 @@ public class GitCommandController {
 
 				System.out.println("-------------------------------------------");
 				System.out.println("Attribute::"+entry.getNewPath());
-				JavaClassPaser.parseJavaFile(entry.getNewPath());
+				JavaClassPaser.parseJavaFile(gitRepoPath+entry.getNewPath());
 				classFileList.add(entry.getNewPath());
 				//System.out.println("Attribute::"+entry.());
 				System.out.println("-------------------------------------------");
@@ -152,7 +125,7 @@ public class GitCommandController {
 				stringBuilder.append("\r\n<br>");
 				
 				
-				linesChangeInFile(git, commits,entry.getNewPath(),repository.getDirectory().getParent());
+				//linesChangeInFile(git, commits,entry.getNewPath(),repository.getDirectory().getParent());
 			}
 		}
 		System.out.println(stringBuilder.toString());
@@ -215,50 +188,6 @@ public class GitCommandController {
 		return repository;
 	}
 
-//	public String printDiff1(Repository repository, String commitId) {
-//		StringBuilder stringBuilder = new StringBuilder();
-//		ProcessBuilder processBuilder = new ProcessBuilder();
-//		processBuilder.command("git", "diff", commitId + "~", commitId);
-//		List<Integer> list = new ArrayList<>();
-//		try {
-//			Process process = processBuilder.start();
-//			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-//			String line;
-//			int count =0;
-//			while ((line = reader.readLine()) != null) {
-//				int startingPoint =0;
-//				int endPoint = 0;
-//				count = count+1;
-//				if(line.startsWith("@@")) {
-//					count=0;
-//					System.out.println(line);
-//					String[] str = line.split(" ");
-//					System.out.println(Arrays.toString(str));
-//					System.out.println(str[2]);
-//					String[] str1 = str[2].split(",");
-//					System.out.println(Arrays.toString(str1));
-//					startingPoint = Integer.valueOf(str1[0]); 
-//					endPoint = Integer.valueOf(str1[1]); 
-//				}
-//				if(line.startsWith("+")||line.startsWith("-")) {
-//					System.out.println("line::"+line);
-//					list.add(count+startingPoint);
-//				}
-//				
-//			}
-//			if(process.waitFor()!=0) {
-//				throw new RuntimeException("failure of command execution");
-//			}
-//
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		} catch (InterruptedException e) {
-//			e.printStackTrace();
-//		}
-//		System.out.println("List::"+list);
-//		return stringBuilder.toString();
-//	}
-
 	public void linesChangeInFile(Git git,List<String> commits, String fileName, String pathRepository) {
 		try {
 			System.out.println("fileName ::"+fileName);
@@ -302,7 +231,6 @@ public class GitCommandController {
 		try {
 			AbstractTreeIterator oldTreeParser = prepareTreeParser(getRepository(), commitIDOld);
 			AbstractTreeIterator newTreeParser = prepareTreeParser(getRepository(), commitIDNew);
-
 			List<DiffEntry> diffs = git.diff().setOldTree(oldTreeParser).setNewTree(newTreeParser)
 					.setPathFilter(PathFilter.create(fileName)).call();
 
@@ -324,7 +252,6 @@ public class GitCommandController {
 		} catch (IOException | GitAPIException e) {
 			System.err.println("Error:" + e.getMessage());
 		}
-
 		return linesAdded + ";" + linesDeleted;
 
 	}

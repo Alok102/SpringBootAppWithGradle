@@ -17,7 +17,7 @@ dependencies {
     compileOnly group: 'io.springfox', name: 'springfox-swagger2', version: '2.9.2'
     compileOnly group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.9.2'
     // https://mvnrepository.com/artifact/com.github.javaparser/javaparser-core
-	compile group: 'com.github.javaparser', name: 'javaparser-core', version: '2.0.0'
+	compile group: 'com.github.javaparser', name: 'javaparser-core', version: '3.15.18'
     testImplementation('org.springframework.boot:spring-boot-starter-test', ) {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
     }

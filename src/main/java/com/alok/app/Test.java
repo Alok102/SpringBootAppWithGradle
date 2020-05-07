@@ -1,18 +1,14 @@
 package com.alok.app;
 
-import java.util.List;
 import java.util.stream.IntStream;
 
 public class Test {
-	public void sum() {
-		int a = 20;
-		int b = 3;
-		System.out.println("summ" + (a + b));
+	
+	public int sum(int a, int b) {
+		return (a+b);
 	}
 
-	public void sub() {
-		int a = 2;
-		int b = 3;
+	public void sub(int a , int b) {
 		System.out.println("Subs" + (a - b));
 	}
 
@@ -22,15 +18,9 @@ public class Test {
 		});
 
 		stream.limit(10).forEach(System.out::println);
-
 	}
 
-	public void div() {
-		int a = 21;
-		int b = 3;
-		// dev
+	public void div(int a , int b) {
 		System.out.println("Div" + (a / b));
-		// mul
-		System.out.println("Mul" + (a * b));
 	}
 }

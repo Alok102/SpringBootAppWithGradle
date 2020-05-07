@@ -6,8 +6,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.jgit.api.DiffCommand;
 import org.eclipse.jgit.api.Git;
@@ -16,6 +19,7 @@ import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
 import org.eclipse.jgit.diff.Edit;
+import org.eclipse.jgit.diff.EditList;
 import org.eclipse.jgit.diff.RawTextComparator;
 import org.eclipse.jgit.errors.RevisionSyntaxException;
 import org.eclipse.jgit.lib.ObjectId;
@@ -113,12 +117,12 @@ public class GitCommandController {
 			for (DiffEntry entry : diff) {
 
 				System.out.println("-------------------------------------------");
-				System.out.println("Attribute::"+entry.getNewPath());
-				List<MethodDetails> methodList = JavaClassPaser.printMethodsAndStartAndEndLine
-				(JavaClassPaser.parseJavaFile(gitRepoPath+entry.getNewPath()));
-				System.out.println("methodList::"+methodList);
+				System.out.println("Attribute::" + entry.getNewPath());
+				List<MethodDetails> methodList = JavaClassPaser
+						.printMethodsAndStartAndEndLine(JavaClassPaser.parseJavaFile(gitRepoPath + entry.getNewPath()));
+				System.out.println("methodList::" + methodList);
 				classFileList.add(entry.getNewPath());
-				//System.out.println("Attribute::"+entry.());
+				// System.out.println("Attribute::"+entry.());
 				System.out.println("-------------------------------------------");
 				stringBuilder.append("Change Type: " + entry.getChangeType()
 						+ (!(entry.getChangeType().equals(DiffEntry.ChangeType.ADD))
@@ -126,9 +130,8 @@ public class GitCommandController {
 								: "")
 						+ ((!entry.getOldPath().equals(entry.getNewPath())) ? ", to: " + entry.getNewPath() : ""));
 				stringBuilder.append("\r\n<br>");
-				
-				
-				linesChangeInFile(git, commits,entry.getNewPath(),repository.getDirectory().getParent());
+
+				linesChangeInFile(git, commits, entry.getNewPath(), repository.getDirectory().getParent(), methodList);
 			}
 		}
 		System.out.println(stringBuilder.toString());
@@ -191,43 +194,25 @@ public class GitCommandController {
 		return repository;
 	}
 
-	public void linesChangeInFile(Git git,List<String> commits, String fileName, String pathRepository) {
+	public void linesChangeInFile(Git git, List<String> commits, String fileName, String pathRepository,
+			List<MethodDetails> methodList) throws IOException {
 		try {
-			System.out.println("fileName ::"+fileName);
-			System.out.println("pathRepository::"+pathRepository);
+			System.out.println("fileName ::" + fileName);
+			System.out.println("pathRepository::" + pathRepository);
 
 			List<String> linesChange = new ArrayList<>();
 
 			for (int i = 0; i < commits.size() - 1; i++) {
-					linesChange.add(diff(git,commits.get(1), commits.get(0), fileName));
-				}
-
-				try (final FileInputStream input = new FileInputStream(pathRepository + "\\" + fileName)) {
-					BufferedReader br = new BufferedReader(new InputStreamReader(input));
-					System.out.println("added/chaned" + br.readLine());
-				}
-			
-
-			Integer sumLinesAdd = 0;
-			Integer sumLinesDel = 0;
-			for (String lineChange : linesChange) {
-				String[] lChange = lineChange.split(";");
-				sumLinesAdd += Integer.parseInt(lChange[0]);
-				sumLinesDel += Integer.parseInt(lChange[1]);
+				linesChange.add(diff(git, commits.get(1), commits.get(0), fileName, methodList));
 			}
 
-			System.out.println("Lines Add total:" + sumLinesAdd);
-			System.out.println("Lines Del total:" + sumLinesDel);
-			System.out.println("Total lines change:" + (sumLinesAdd + sumLinesDel));
-
 		} catch (RevisionSyntaxException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
-	private String diff(Git git, String commitIDOld, String commitIDNew, String fileName) {
+	private String diff(Git git, String commitIDOld, String commitIDNew, String fileName,
+			List<MethodDetails> methodList) {
 		int linesAdded = 0;
 		int linesDeleted = 0;
 		DiffFormatter df = null;
@@ -243,20 +228,36 @@ public class GitCommandController {
 			df.setDetectRenames(true);
 
 			for (DiffEntry entry : diffs) {
-				System.out.println("header::"+ df.toFileHeader(entry));
-				System.out.println("editList::"+df.toFileHeader(entry).toEditList());
-				for (Edit edit : df.toFileHeader(entry).toEditList()) {
-					System.out.println("edit.getEndA()::"+edit.getEndA()+" edit.getBeginA()::"+edit.getBeginA());
-					linesDeleted += edit.getEndA() - edit.getBeginA();
-					System.out.println("edit.getEndB()::"+ edit.getEndB()+" edit.getBeginB()::"+edit.getBeginB());
-					linesAdded += edit.getEndB() - edit.getBeginB();
+				Set<MethodDetails> changeMethodList = new LinkedHashSet<MethodDetails>();
+				System.out.println("header::" + df.toFileHeader(entry));
+				System.out.println("editList::" + df.toFileHeader(entry).toEditList());
+				List<Edit> editList = df.toFileHeader(entry).toEditList();
+				System.out.println("editList::" + editList);
+				for (Edit edit : editList) {
+					changeMethodList.addAll(getChangeMethodList(edit, methodList));
+					System.out.println("changeMethodList::" + changeMethodList);
 				}
+
 			}
 		} catch (IOException | GitAPIException e) {
 			System.err.println("Error:" + e.getMessage());
 		}
 		return linesAdded + ";" + linesDeleted;
 
+	}
+
+	public static Set<MethodDetails> getChangeMethodList(Edit edit, List<MethodDetails> methodList) {
+		Set<MethodDetails> methods = new LinkedHashSet<MethodDetails>();
+		System.out.println("edit::" + edit.toString());
+		for (MethodDetails method : methodList) {
+			if (method.getStartLine() <= edit.getBeginB() && edit.getBeginB() <= method.getEndLine()) {
+				methods.add(method);
+			}
+			if (method.getStartLine() <= edit.getEndB() && edit.getEndB() <= method.getEndLine()) {
+				methods.add(method);
+			}
+		}
+		return methods;
 	}
 
 }

@@ -118,8 +118,11 @@ public class GitCommandController {
 
 				System.out.println("-------------------------------------------");
 				System.out.println("Attribute::" + entry.getNewPath());
+				
 				List<MethodDetails> methodList = JavaClassPaser
 						.printMethodsAndStartAndEndLine(JavaClassPaser.parseJavaFile(gitRepoPath + entry.getNewPath()));
+				System.out.println(JavaClassPaser.getClassExtendsDetails(gitRepoPath + entry.getNewPath()));
+				System.out.println(JavaClassPaser.getInterfaceImplementationDetails(gitRepoPath + entry.getNewPath()));
 				System.out.println("methodList::" + methodList);
 				classFileList.add(entry.getNewPath());
 				// System.out.println("Attribute::"+entry.());

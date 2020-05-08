@@ -2,7 +2,7 @@ package com.alok.app;
 
 import java.util.stream.IntStream;
 
-public class Test {
+public class Test extends Object implements Cloneable, Runnable{
 	
 	public int sum(int a, int b) {
 		System.out.println();
@@ -36,5 +36,11 @@ public class Test {
 
 	public void div(int a , int b) {
 		System.out.println("Div" + (a / b));
+	}
+
+	@Override
+	public void run() {
+		// TODO Auto-generated method stub
+		
 	}
 }
